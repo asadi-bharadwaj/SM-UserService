@@ -1,0 +1,507 @@
+# USER-SERVICE Testing Document (Full QA Guide)
+
+# 1. Service Information
+
+
+Service Name : USER-SERVICE
+Direct Port  : 8083
+Gateway Port : 8081
+Base Route   : /users/**
+```
+
+---
+
+# 2. APIs Covered
+
+
+GET    /users/me
+PUT    /users/me
+POST   /users/follow/{creatorId}
+DELETE /users/follow/{creatorId}
+GET    /users/following
+```
+
+---
+
+# 3. Required Header
+
+All APIs currently require:
+
+
+X-User-Id
+```
+
+Example:
+
+X-User-Id: 1
+```
+
+---
+
+# 4. Test Environment
+
+
+MySQL running
+Eureka running
+Gateway running
+USER-SERVICE running
+```
+
+---
+
+# 5. Database Tables
+
+
+users_profile
+user_following
+```
+
+---
+
+# 6. Test Cases
+
+---
+
+# TEST CASE 1 — Health Check (Optional)
+
+## Direct Service
+
+
+GET http://localhost:8083/users/health
+```
+
+## Expected
+
+
+USER-SERVICE UP
+```
+
+---
+
+# TEST CASE 2 — First Time Get My Profile
+
+## Request
+
+
+GET http://localhost:8083/users/me
+X-User-Id: 1
+```
+
+## Expected Behavior
+
+If user profile not present, service auto-creates.
+
+## Expected Response
+
+
+{
+  "id": 1,
+  "authUserId": 1,
+  "displayName": "New User",
+  "username": null,
+  "bio": null,
+  "avatarUrl": null,
+  "country": null,
+  "language": null
+}
+```
+
+## DB Validation
+
+
+select * from users_profile where auth_user_id = 1;
+```
+
+---
+
+# TEST CASE 3 — Get Existing Profile
+
+## Request
+
+
+GET http://localhost:8083/users/me
+X-User-Id: 1
+```
+
+## Expected
+
+Existing profile returned, no duplicate row created.
+
+---
+
+# TEST CASE 4 — Update Profile Success
+
+## Request
+
+
+PUT http://localhost:8083/users/me
+X-User-Id: 1
+Content-Type: application/json
+```
+
+## Body
+
+
+{
+  "displayName": "Bharadwaj",
+  "bio": "Java Developer",
+  "country": "India",
+  "language": "en",
+  "avatarUrl": "https://cdn.app.com/avatar1.png"
+}
+```
+
+## Expected Response
+
+
+{
+  "id": 1,
+  "authUserId": 1,
+  "displayName": "Bharadwaj",
+  "bio": "Java Developer",
+  "country": "India",
+  "language": "en",
+  "avatarUrl": "https://cdn.app.com/avatar1.png"
+}
+```
+
+## DB Validation
+
+
+select display_name,bio,country from users_profile where auth_user_id=1;
+```
+
+---
+
+# TEST CASE 5 — Partial Update
+
+## Request
+
+
+PUT http://localhost:8083/users/me
+X-User-Id: 1
+```
+
+## Body
+
+
+{
+  "displayName": "Bharadwaj A"
+}
+```
+
+## Expected
+
+
+Display name updated
+Other fields remain same (if service supports merge)
+```
+
+(If current implementation sets nulls, note improvement required.)
+
+---
+
+# TEST CASE 6 — Missing Header
+
+## Request
+
+
+GET http://localhost:8083/users/me
+```
+
+## Expected
+
+
+400 Bad Request
+Required request header 'X-User-Id' missing
+```
+
+---
+
+# TEST CASE 7 — Invalid Header Type
+
+## Request
+
+GET http://localhost:8083/users/me
+X-User-Id: abc
+```
+
+## Expected
+
+400 Bad Request
+Failed to convert value
+```
+
+---
+
+# TEST CASE 8 — Follow Creator Success
+
+## Request
+
+POST http://localhost:8083/users/follow/101
+X-User-Id: 1
+```
+
+## Expected Response
+
+Followed creator
+```
+
+## DB Validation
+
+select * from user_following where user_id=1 and creator_id=101;
+```
+
+---
+
+# TEST CASE 9 — Follow Same Creator Again
+
+## Request
+
+POST http://localhost:8083/users/follow/101
+X-User-Id: 1
+```
+
+## Expected Response
+
+Already following creator
+```
+
+---
+
+# TEST CASE 10 — Follow Another Creator
+
+## Request
+
+POST http://localhost:8083/users/follow/202
+X-User-Id: 1
+```
+
+## Expected
+
+Followed creator
+```
+
+---
+
+# TEST CASE 11 — Get Following List
+
+## Request
+
+GET http://localhost:8083/users/following
+X-User-Id: 1
+```
+
+## Expected Response
+
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "creatorId": 101
+  },
+  {
+    "id": 2,
+    "userId": 1,
+    "creatorId": 202
+  }
+]
+```
+
+---
+
+# TEST CASE 12 — Following Empty List
+
+## Request
+
+GET http://localhost:8083/users/following
+X-User-Id: 99
+```
+
+## Expected
+
+[]
+```
+
+---
+
+# TEST CASE 13 — Unfollow Creator Success
+
+## Request
+
+DELETE http://localhost:8083/users/follow/101
+X-User-Id: 1
+```
+
+## Expected Response
+
+Unfollowed creator
+```
+
+## DB Validation
+
+select * from user_following where user_id=1 and creator_id=101;
+```
+
+Expected rows = 0
+
+---
+
+# TEST CASE 14 — Unfollow Non Existing Creator
+
+## Request
+
+DELETE http://localhost:8083/users/follow/999
+X-User-Id: 1
+```
+
+## Expected
+
+Unfollowed creator
+```
+
+(Current implementation returns success even if no row exists)
+
+---
+
+# TEST CASE 15 — Gateway Access Get Profile
+
+## Request
+
+GET http://localhost:8081/users/me
+X-User-Id: 1
+```
+
+## Expected
+
+Same response as direct service.
+
+---
+
+# TEST CASE 16 — Gateway Follow API
+
+## Request
+
+POST http://localhost:8081/users/follow/303
+X-User-Id: 1
+```
+
+## Expected
+
+Followed creator
+```
+
+---
+
+# 7. Negative Scenarios
+
+---
+
+## Long Display Name
+
+{
+  "displayName":"(300 chars)"
+}
+```
+
+Expected:
+
+Validation error (recommended improvement)
+```
+
+---
+
+## SQL Injection Input
+
+{
+  "displayName":"test' OR 1=1 --"
+}
+```
+
+Expected:
+
+Stored as string / no SQL execution
+```
+
+(JPA safe)
+
+---
+
+## Very Large Bio
+
+{
+  "bio":"5000 chars"
+}
+```
+
+Expected:
+
+Column size error or validation reject
+```
+
+---
+
+# 8. Recommended Postman Collection Variables
+
+baseDirect = http://localhost:8083
+baseGateway = http://localhost:8081
+userId = 1
+creatorId = 101
+```
+
+---
+
+# 9. SQL Validation Queries
+
+select * from users_profile;
+select * from user_following;
+```
+
+---
+
+# 10. Expected HTTP Status Codes
+
+200 Success
+400 Bad Request
+401 Unauthorized (if security enabled later)
+404 Wrong URL
+500 Server Error
+```
+
+---
+
+# 11. Regression Checklist
+
+✔ Get profile creates row once
+✔ Update profile works
+✔ Follow creator works
+✔ Duplicate follow prevented
+✔ Following list returns rows
+✔ Unfollow removes row
+✔ Gateway routes correctly
+```
+
+---
+
+# 12. Improvements Recommended Next
+
+Bean Validation
+Global Exception Handler
+JWT from Gateway
+Response Wrapper
+Pagination
+Swagger
+```
+
+---
+
+# 13. Final Success Condition
+
+USER-SERVICE is considered stable when:
+
+All APIs pass direct test
+All APIs pass gateway test
+DB state correct
+No duplicate follow rows
+No 500 errors
+```
