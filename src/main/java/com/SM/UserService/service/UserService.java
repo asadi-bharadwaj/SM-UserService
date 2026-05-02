@@ -103,4 +103,8 @@ public class UserService {
 
         return "Profile created";
     }
+    
+    public List<UserProfile> getAllUsers() {
+        return profileRepo.findAll();
+    }
 }
