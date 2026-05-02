@@ -76,4 +76,9 @@ public class UserController {
             userService.createProfile(authUserId, username)
         );
     }
+    
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
 }
