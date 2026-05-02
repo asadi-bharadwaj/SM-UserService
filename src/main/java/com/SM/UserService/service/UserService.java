@@ -83,4 +83,24 @@ public class UserService {
     public List<UserFollowing> getFollowing(Long userId) {
         return followingRepo.findByUserId(userId);
     }
+    
+    public String createProfile(Long authUserId, String username) {
+
+        if (profileRepo.findByAuthUserId(authUserId).isPresent()) {
+            return "Profile already exists";
+        }
+
+        UserProfile profile = new UserProfile();
+        profile.setAuthUserId(authUserId);
+        profile.setUsername(username);
+        profile.setDisplayName(username);
+        profile.setBio("");
+        profile.setAvatarUrl("");
+        profile.setCountry("");
+        profile.setLanguage("");
+
+        profileRepo.save(profile);
+
+        return "Profile created";
+    }
 }

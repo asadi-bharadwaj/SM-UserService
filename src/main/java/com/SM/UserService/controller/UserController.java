@@ -1,5 +1,7 @@
 package com.SM.UserService.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,5 +64,16 @@ public class UserController {
             @RequestHeader("X-User-Id") Long userId) {
 
         return ResponseEntity.ok(userService.getFollowing(userId));
+    }
+    
+    @PostMapping("/init-profile")
+    public ResponseEntity<?> initProfile(@RequestBody Map<String,Object> req) {
+
+        Long authUserId = Long.valueOf(req.get("authUserId").toString());
+        String username = req.get("username").toString();
+
+        return ResponseEntity.ok(
+            userService.createProfile(authUserId, username)
+        );
     }
 }
