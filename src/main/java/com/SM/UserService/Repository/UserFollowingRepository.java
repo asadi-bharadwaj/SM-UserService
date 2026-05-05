@@ -23,4 +23,6 @@ public interface UserFollowingRepository extends JpaRepository<UserFollowing, Lo
     @Modifying
     @Transactional
     void deleteByUserIdAndCreatorId(Long userId, Long creatorId);
+    
+    List<UserFollowing> findByCreatorId(Long creatorId);
 }
