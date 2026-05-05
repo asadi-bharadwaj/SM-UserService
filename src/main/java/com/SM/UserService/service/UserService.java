@@ -60,6 +60,12 @@ public class UserService {
         return profileRepo.save(profile);
     }
 
+    public void updateAvatarUrl(Long userId, String avatarUrl) {
+        UserProfile profile = getMyProfile(userId);
+        profile.setAvatarUrl(avatarUrl);
+        profileRepo.save(profile);
+    }
+
     public String followCreator(Long userId, Long creatorId) {
 
         if (followingRepo.existsByUserIdAndCreatorId(userId, creatorId)) {
