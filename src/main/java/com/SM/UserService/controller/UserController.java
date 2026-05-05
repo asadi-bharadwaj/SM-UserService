@@ -1,6 +1,12 @@
 package com.SM.UserService.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,7 +17,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.SM.UserService.dto.UpdateProfileRequest;
 import com.SM.UserService.service.UserService;
@@ -36,9 +44,49 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<?> updateProfile(
             @RequestHeader("X-User-Id") Long userId,
-            @RequestBody UpdateProfileRequest req) {
+            @RequestBody UpdateProfileRequest request) {
 
-        return ResponseEntity.ok(userService.updateProfile(userId, req));
+        return ResponseEntity.ok(userService.updateProfile(userId, request));
+    }
+
+    @PostMapping("/me/avatar")
+    public ResponseEntity<?> uploadAvatar(
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam("file") MultipartFile file) {
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty");
+        }
+
+        try {
+            // Create uploads directory if it doesn't exist
+            Path uploadDir = Paths.get("uploads/avatars");
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
+
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : ".jpg";
+            String filename = userId + "_" + UUID.randomUUID().toString() + extension;
+
+            // Save file
+            Path filePath = uploadDir.resolve(filename);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Generate URL (assuming the service is accessible at localhost:8081)
+            String avatarUrl = "http://localhost:8081/uploads/avatars/" + filename;
+
+            // Update user's avatar URL
+            userService.updateAvatarUrl(userId, avatarUrl);
+
+            return ResponseEntity.ok(Map.of("avatarUrl", avatarUrl));
+
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("Failed to upload file: " + e.getMessage());
+        }
     }
 
     @PostMapping("/follow/{creatorId}")
