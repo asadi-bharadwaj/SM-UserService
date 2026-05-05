@@ -81,4 +81,13 @@ public class UserController {
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+    
+    @GetMapping("/followers")
+    public ResponseEntity<?> followers(
+            @RequestHeader("X-User-Id") Long userId) {
+
+        return ResponseEntity.ok(
+            userService.getFollowers(userId)
+        );
+    }
 }

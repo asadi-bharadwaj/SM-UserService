@@ -1,8 +1,11 @@
 package com.SM.UserService.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.SM.UserService.Repository.UserFollowingRepository;
 import com.SM.UserService.Repository.UserProfileRepository;
@@ -69,7 +72,29 @@ public class UserService {
 
         followingRepo.save(f);
 
+        // Send Push Notification to Creator
+        sendPushNotification(String.valueOf(creatorId), "PUSH", "New Subscriber!", "A new user started following you.");
+
         return "Followed creator";
+    }
+
+    private void sendPushNotification(String recipientId, String type, String title, String message) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            Map<String, Object> body = new HashMap<>();
+            body.put("recipientId", recipientId);
+            body.put("type", type);
+            body.put("title", title);
+            body.put("message", message);
+
+            restTemplate.postForObject(
+                "http://localhost:8084/api/notifications",
+                body,
+                String.class
+            );
+        } catch (Exception e) {
+            System.err.println("Notification failed: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -106,5 +131,8 @@ public class UserService {
     
     public List<UserProfile> getAllUsers() {
         return profileRepo.findAll();
+    }
+    public List<UserFollowing> getFollowers(Long userId) {
+        return followingRepo.findByCreatorId(userId);
     }
 }
