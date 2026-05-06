@@ -3,16 +3,13 @@ package com.SM.UserService.Repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import com.SM.UserService.entity.UserFollowing;
 
-import jakarta.transaction.Transactional;
-
 @Repository
-public interface UserFollowingRepository extends JpaRepository<UserFollowing, Long> {
+public interface UserFollowingRepository extends MongoRepository<UserFollowing, String> {
 
     List<UserFollowing> findByUserId(Long userId);
 
@@ -20,9 +17,8 @@ public interface UserFollowingRepository extends JpaRepository<UserFollowing, Lo
 
     boolean existsByUserIdAndCreatorId(Long userId, Long creatorId);
 
-    @Modifying
-    @Transactional
     void deleteByUserIdAndCreatorId(Long userId, Long creatorId);
     
     List<UserFollowing> findByCreatorId(Long creatorId);
+
 }

@@ -1,40 +1,30 @@
 package com.SM.UserService.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name="user_preferences")
+@Document(collection = "user_preferences")
 public class UserPreference {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name="user_id", unique=true, nullable=false)
     private Long userId;
 
     private String theme = "DARK";
     private String language = "en";
 
-    @Column(name="email_notifications")
     private Boolean emailNotifications = true;
 
-    @Column(name="push_notifications")
     private Boolean pushNotifications = true;
 
-    @Column(name="blur_sensitive")
     private Boolean blurSensitive = true;
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -86,7 +76,7 @@ public class UserPreference {
 		this.blurSensitive = blurSensitive;
 	}
 
-	public UserPreference(Long id, Long userId, String theme, String language, Boolean emailNotifications,
+	public UserPreference(String id, Long userId, String theme, String language, Boolean emailNotifications,
 			Boolean pushNotifications, Boolean blurSensitive) {
 		super();
 		this.id = id;

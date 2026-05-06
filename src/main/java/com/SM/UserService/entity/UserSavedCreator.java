@@ -1,46 +1,26 @@
 package com.SM.UserService.entity;
 
 import java.time.LocalDateTime;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-
-@Entity
-@Table(name="user_saved_creators",
-uniqueConstraints = {
- @UniqueConstraint(columnNames = {"user_id","creator_id"})
-})
+@Document(collection = "user_saved_creators")
 public class UserSavedCreator {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name="user_id")
     private Long userId;
 
-    @Column(name="creator_id")
     private Long creatorId;
 
-    @Column(name="created_at")
     private LocalDateTime createdAt;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-    }
-
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -68,7 +48,7 @@ public class UserSavedCreator {
 		this.createdAt = createdAt;
 	}
 
-	public UserSavedCreator(Long id, Long userId, Long creatorId, LocalDateTime createdAt) {
+	public UserSavedCreator(String id, Long userId, Long creatorId, LocalDateTime createdAt) {
 		super();
 		this.id = id;
 		this.userId = userId;

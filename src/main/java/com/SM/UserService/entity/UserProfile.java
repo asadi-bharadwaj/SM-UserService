@@ -1,67 +1,38 @@
 package com.SM.UserService.entity;
 
 import java.time.LocalDateTime;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "users_profile")
+@Document(collection = "users_profile")
 public class UserProfile {
 
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(name="auth_user_id", nullable=false, unique=true)
     private Long authUserId;
 
-    @Column(name="display_name", length=100)
     private String displayName;
 
-    @Column(unique=true, length=50)
     private String username;
 
-    @Column(length=500)
     private String bio;
 
-    @Column(name="avatar_url")
     private String avatarUrl;
 
-    @Column(length=50)
     private String country;
 
-    @Column(length=20)
     private String language;
 
-    @Column(name="created_at")
     private LocalDateTime createdAt;
 
-    @Column(name="updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
-
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -137,7 +108,7 @@ public class UserProfile {
 		this.updatedAt = updatedAt;
 	}
 
-	public UserProfile(Long id, Long authUserId, String displayName, String username, String bio, String avatarUrl,
+	public UserProfile(String id, Long authUserId, String displayName, String username, String bio, String avatarUrl,
 			String country, String language, LocalDateTime createdAt, LocalDateTime updatedAt) {
 		super();
 		this.id = id;

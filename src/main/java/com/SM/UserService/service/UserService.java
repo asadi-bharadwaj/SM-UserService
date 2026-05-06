@@ -1,5 +1,6 @@
 package com.SM.UserService.service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +13,6 @@ import com.SM.UserService.Repository.UserProfileRepository;
 import com.SM.UserService.dto.UpdateProfileRequest;
 import com.SM.UserService.entity.UserFollowing;
 import com.SM.UserService.entity.UserProfile;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
@@ -34,6 +33,8 @@ public class UserService {
                     UserProfile p = new UserProfile();
                     p.setAuthUserId(userId);
                     p.setDisplayName("New User");
+                    p.setCreatedAt(LocalDateTime.now());
+                    p.setUpdatedAt(LocalDateTime.now());
                     return profileRepo.save(p);
                 });
     }
@@ -57,12 +58,14 @@ public class UserService {
         if(req.getAvatarUrl() != null)
             profile.setAvatarUrl(req.getAvatarUrl());
 
+        profile.setUpdatedAt(LocalDateTime.now());
         return profileRepo.save(profile);
     }
 
     public void updateAvatarUrl(Long userId, String avatarUrl) {
         UserProfile profile = getMyProfile(userId);
         profile.setAvatarUrl(avatarUrl);
+        profile.setUpdatedAt(LocalDateTime.now());
         profileRepo.save(profile);
     }
 
@@ -75,6 +78,7 @@ public class UserService {
         UserFollowing f = new UserFollowing();
         f.setUserId(userId);
         f.setCreatorId(creatorId);
+        f.setCreatedAt(LocalDateTime.now());
 
         followingRepo.save(f);
 
@@ -103,7 +107,6 @@ public class UserService {
         }
     }
 
-    @Transactional
     public String unfollowCreator(Long userId, Long creatorId) {
 
         followingRepo.deleteByUserIdAndCreatorId(userId, creatorId);
@@ -117,7 +120,24 @@ public class UserService {
     
     public String createProfile(Long authUserId, String username) {
 
-        if (profileRepo.findByAuthUserId(authUserId).isPresent()) {
+        UserProfile existingProfile = profileRepo.findByAuthUserId(authUserId).orElse(null);
+        if (existingProfile != null) {
+            boolean updated = false;
+            if (existingProfile.getUsername() == null || existingProfile.getUsername().isBlank()) {
+                existingProfile.setUsername(username);
+                updated = true;
+            }
+            if (existingProfile.getDisplayName() == null
+                    || existingProfile.getDisplayName().isBlank()
+                    || "New User".equalsIgnoreCase(existingProfile.getDisplayName())) {
+                existingProfile.setDisplayName(username);
+                updated = true;
+            }
+            if (updated) {
+                existingProfile.setUpdatedAt(LocalDateTime.now());
+                profileRepo.save(existingProfile);
+                return "Profile updated";
+            }
             return "Profile already exists";
         }
 
@@ -129,6 +149,8 @@ public class UserService {
         profile.setAvatarUrl("");
         profile.setCountry("");
         profile.setLanguage("");
+        profile.setCreatedAt(LocalDateTime.now());
+        profile.setUpdatedAt(LocalDateTime.now());
 
         profileRepo.save(profile);
 
